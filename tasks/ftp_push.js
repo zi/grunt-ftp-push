@@ -12,7 +12,8 @@ module.exports = function (grunt) {
       rootDestination,
       ftpServer,
       options,
-      done;
+      done,
+      stripJsonComments = require('strip-json-comments');
 
   /**
    * @returns {Boolean} true is returned if the required options have all been supplied
@@ -75,11 +76,35 @@ module.exports = function (grunt) {
     });
     return pathsForFiles.reverse();
   }
+  function cleanJSON(json) {
+    json = stripJsonComments(json);
+    return json.replace(/,([\n\s]*})/, '$1');
+  }
+  function getCustomCredentials() {
+    var path = options.authOptions.path;
+    var username = options.authOptions.username || 'username';
+    var password = options.authOptions.password || 'password';
+    var authObject;
+    if (!grunt.file.exists(path)) {
+      return false;
+    }
+    authObject = JSON.parse(cleanJSON(grunt.file.read(path)));
+    if (options.authOptions.key) {
+      authObject = authObject[options.authOptions.key];
+    }
+    return {
+      username: authObject[username],
+      password: authObject[password],
+    };
+  }
   /**
    * @return {Object} returns an object containing a username and password
    */
   function getCredentials() {
-    if (options.authKey && grunt.file.exists('.ftpauth')) {
+    var customPath = options.authOptions && options.authOptions.path;
+    if (customPath && grunt.file.exists(customPath)) {
+      return getCustomCredentials();
+    } else if (options.authKey && grunt.file.exists('.ftpauth')) {
       return JSON.parse(grunt.file.read('.ftpauth'))[options.authKey];
     } else if (options.username && options.password) {
       return {

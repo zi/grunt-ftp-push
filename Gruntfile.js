@@ -37,6 +37,21 @@ module.exports = function(grunt) {
         files: [
           {expand: true,cwd: './',src: ['test/nested/another/sample.js']}
         ]
+      },
+
+      custom: {
+        options: {
+          authOptions: {
+            path: 'sftp-config.json',
+            username: 'user'
+          },
+          host: "localhost",
+          dest: "/html/test/",
+          debug: true // Show JSFTP Debugging information
+        },
+        files: [
+          {expand: true,cwd: './',src: ['test/nested/another/sample.js']}
+        ]
       }
 
     }
